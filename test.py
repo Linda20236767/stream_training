@@ -1,48 +1,26 @@
 import streamlit as st
 import pandas as pd
-from io import BytesIO
+import time
 
-st.title("專案管理：問題清單")
+@st.cache_data
+def fetch_and_clean_data(url):
+    data = pd.read_csv(url)
+    return data
 
-# 側邊欄上傳 Excel 文件
-uploaded_file = st.sidebar.file_uploader("上傳問題清單 Excel", type=["xlsx"])
-if uploaded_file:
-    st.session_state['issues_df'] = pd.read_excel(uploaded_file,)
-else:
-    # 初始化數據框
-    if 'issues_df' not in st.session_state:
-        st.session_state['issues_df'] = pd.DataFrame(columns=['問題描述','執行狀態', '負責人', '優先級', '截止日期', '預計修復時間', '時間標記'])
+start_time = time.time()
+d1 = fetch_and_clean_data("https://raw.githubusercontent.com/plotly/datasets/master/1962_2006_walmart_store_openings.csv")
+# 實際執行函式，因為這是第一次遇到它。
+end_time = time.time()
+st.write(f"d1 fetch data: {end_time - start_time:.2f} seconds")
 
-# 側邊欄互動元件
-with st.sidebar:
-    # 問題描述
-    issue_description = st.text_area('輸入問題描述',value='描述問題')
-    # 執行狀態
-    issue_Status = st.text_area('輸入目前執行狀態',value='執行狀態說明')    
-    # 負責人
-    issue_owner = st.multiselect('選擇負責人', ['Alice', 'Bob', 'Charlie', 'Diana'], default=[])
-    # 優先級
-    issue_priority = st.select_slider('選擇問題優先級', options=['低', '中', '高'], value='低')
-    # 截止日期
-    due_date = st.date_input('選擇截止日期')
-    # 預計修復時間
-    fix_time = st.slider('選擇預計修復時間 (小時)', 0, 48, 8)
-    # 時間標記
-    timestamp = st.time_input('選擇時間標記', pd.Timestamp.now().time())
-    # 提交按鈕
-    if st.button('提交問題'):
-        num_records = len(st.session_state.issues_df)
-        st.session_state.issues_df.loc[num_records]=[issue_description, issue_Status, ', '.join(issue_owner), issue_priority, due_date, f"{fix_time} 小時", timestamp]
-        
-# 顯示可編輯的數據框
-edited_df = st.data_editor(st.session_state['issues_df'], key='editor')
+start_time = time.time()
+d2 = fetch_and_clean_data("https://raw.githubusercontent.com/plotly/datasets/master/1962_2006_walmart_store_openings.csv")
+# 不執行函式。相反地，返回先前計算的值。這表示現在 d1 中的資料與 d2 中的相同。
+end_time = time.time()
+st.write(f"d2 fetch data: {end_time - start_time:.2f} seconds")
 
-# Excel 檔案下載
-def convert_df_to_excel(df):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='Issues')
-    return output.getvalue()
-
-excel_data = convert_df_to_excel(edited_df)
-st.download_button('下載問題清單 Excel', data=excel_data, file_name='issues.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+start_time = time.time()
+d3 = fetch_and_clean_data("https://raw.githubusercontent.com/plotly/datasets/master/2011_february_us_airport_traffic.csv")
+# 這是不同的 URL，因此函式會執行。
+end_time = time.time()
+st.write(f"d3 fetch data: {end_time - start_time:.2f} seconds")
